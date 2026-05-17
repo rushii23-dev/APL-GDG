@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cric-Oracle Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root{
+  --bg:#efe8dd; /* warm beige */
+  --panel:#ffffff;
+  --muted:#6b6b6b;
+  --accent-yellow:#ffd200;
+  --accent-red:#e74c3c;
+  --accent-blue:#1e90ff;
+  --card-shadow: rgba(0,0,0,0.12);
+}
+body{font-family:'Inter',sans-serif;margin:0;background:var(--bg);color:#111}
+.num{font-family:'Rajdhani',sans-serif;letter-spacing:0.6px}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.45}}
+.live-dot{animation:pulse-dot 1.2s infinite;background:var(--accent-red)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader{width:36px;height:36px;border:4px solid rgba(0,0,0,.08);border-top-color:var(--accent-blue);border-radius:50%;animation:spin .8s linear infinite}
+.tab-btn{cursor:pointer;padding:10px 18px;font-size:14px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;transition:.14s}
+.tab-btn:hover{color:#000}
+.tab-btn.active{color:#000;border-bottom-color:rgba(0,0,0,.06)}
+.card{background:var(--panel);border:1px solid rgba(0,0,0,.06);border-radius:6px;padding:18px;box-shadow:0 6px 18px var(--card-shadow)}
+.agent-out h3{font-size:1.05rem;font-weight:700;color:#000;margin:12px 0 6px}
+.agent-out strong{color:var(--accent-red)}
+.agent-out ul{padding-left:18px;margin:6px 0}
+.agent-out li{margin:4px 0;line-height:1.6}
+.agent-out p{margin:6px 0;line-height:1.6;color:#333}
+select,input,textarea{border:1px solid rgba(0,0,0,.06);border-radius:6px;padding:10px 12px;font-size:14px;width:100%;outline:none;background:transparent;color:inherit}
+select:focus,input:focus,textarea:focus{border-color:rgba(0,0,0,.12);box-shadow:0 6px 18px rgba(0,0,0,.04)}
+.live-panel{background:var(--panel);border:1px solid rgba(0,0,0,.06);padding:18px;border-radius:6px;box-shadow:0 10px 20px rgba(0,0,0,0.06)}
+.big-captain{background:var(--accent-yellow);color:#081017;font-weight:800;border-radius:6px;padding:24px 20px;font-size:28px;box-shadow:0 12px 0 rgba(0,0,0,0.08)}
+.big-captain small{display:block;font-size:12px;font-weight:600;margin-bottom:10px;color:#222}
+.radar-score{font-size:42px;font-weight:800;color:#111}
+.muted-sm{color:var(--muted)}
+.hero-sub{font-size:16px;color:#222;margin-top:12px;line-height:1.4}
+.action-row{display:flex;gap:18px;margin-top:26px}
+.action-btn{flex:1;padding:18px;border-radius:6px;font-weight:800;box-shadow:0 8px 0 rgba(0,0,0,0.06);cursor:pointer;border:1px solid rgba(0,0,0,.04)}
+.action-btn.yellow{background:var(--accent-yellow);color:#061017}
+.action-btn.blue{background:var(--accent-blue);color:#fff}
+.action-btn.red{background:var(--accent-red);color:#fff}
+.action-btn.black{background:#111;color:#fff}
+.left-panel{width:380px;padding:28px}
+.main-area{flex:1;padding:36px}
+.metrics{display:flex;gap:18px;margin-bottom:18px}
+.metric{background:transparent;padding:10px 16px;border-radius:6px}
+.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.metric .value{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:800}
+.bottom-actions{display:flex;gap:18px;margin-top:26px}
+.hero-card{display:flex;flex-direction:column;justify-content:center;padding:28px;border-radius:6px}
+.nav-top{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid rgba(0,0,0,.04);background:transparent}
+.nav-links{display:flex;gap:18px;align-items:center}
+.logo{font-weight:800;font-size:20px}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- NAV -->
+<nav class="nav-top">
+  <div class="flex items-center gap-3">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="logo">CAPTAIN COOL</div>
+      <div style="font-size:12px;color:var(--muted)">ELITE DECISION SUPPORT — v4.0</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <div style="font-weight:700;color:var(--muted);font-size:13px">ANALYSIS</div>
+    <div style="font-weight:700;color:var(--muted);font-size:13px">STRATEGY</div>
+    <div style="font-weight:700;color:var(--muted);font-size:13px">HISTORY</div>
+    <div style="display:flex;align-items:center;gap:8px"><span class="w-2.5 h-2.5 rounded-full live-dot" style="display:inline-block"></span><span style="font-weight:800;color:var(--accent-red)">LIVE</span></div>
+  </div>
+</nav>
+
+<div style="display:flex;min-height:calc(100vh - 72px)">
+
+  <!-- LEFT: Config Panel -->
+  <aside class="left-panel">
+
+    <!-- LIVE RADAR -->
+    <div class="live-panel mb-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-red-600 uppercase tracking-wider">📡 Live Radar</span>
+        <span class="flex items-center gap-1 text-[10px] font-bold text-red-500"><span class="w-1.5 h-1.5 rounded-full bg-red-500 live-dot"></span>LIVE</span>
+      </div>
+      <p class="text-lg font-extrabold num" id="radarMatch">Loading...</p>
+      <div class="flex items-baseline gap-3 mt-1">
+        <span class="num radar-score" id="radarScore">—</span>
+        <span class="text-sm muted-sm" id="radarOvers"></span>
+      </div>
+      <div class="text-xs muted-sm mt-2 space-y-0.5">
+        <p>🏏 <span id="radarStriker">—</span></p>
+        <p>🎳 <span id="radarBowler">—</span></p>
+        <p>📍 <span id="radarVenue">—</span></p>
+      </div>
+      <button onclick="loadFromRadar()" class="mt-3 w-full text-xs font-semibold text-white bg-transparent border border-transparent rounded-lg py-2 hover:opacity-90 transition">↓ Load Into Oracle</button>
+    </div>
+
+    <h2 class="text-[11px] font-bold muted-sm uppercase tracking-widest mb-3">Match Setup</h2>
+
+    <!-- Cricbuzz Toggle -->
+    <div class="card mb-4">
+      <label class="text-xs font-semibold muted-sm mb-2 block">Live Source</label>
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold">Cricbuzz Live</div>
+          <div class="text-xs muted-sm">When enabled, score will follow Cricbuzz live IPL matches</div>
+        </div>
+        <div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="cricbuzzToggle" class="sr-only">
+            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 peer-checked:bg-green-500" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.04)"></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teams -->
+    <div class="card mb-4">
+      <label class="text-xs font-semibold muted-sm mb-1 block">Batting Team</label>
+      <select id="battingTeam" class="mb-3"></select>
+      <label class="text-xs font-semibold muted-sm mb-1 block">Bowling Team</label>
+      <select id="bowlingTeam"></select>
+    </div>
+
+    <!-- Score -->
+    <div class="card mb-4">
+      <label class="text-xs font-semibold muted-sm mb-2 block">Score & Situation</label>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[11px] muted-sm">Score (e.g. 159/3)</label><input id="score" value="159/3"></div>
+        <div><label class="text-[11px] muted-sm">Overs</label><input id="overs" value="15.2"></div>
+      </div>
+      <div class="mt-3">
+        <label class="text-[11px] muted-sm">Target / Innings</label>
+        <input id="target" value="1st Innings" placeholder="e.g. 186 or '1st Innings'">
+      </div>
+    </div>
+
+    <!-- Players -->
+    <div class="card mb-4">
+      <label class="text-xs font-semibold muted-sm mb-2 block">Players</label>
+      <label class="text-[11px] muted-sm">Striker</label>
+      <select id="striker" class="mb-2"></select>
+      <label class="text-[11px] muted-sm">Non-Striker</label>
+      <select id="nonStriker" class="mb-2"></select>
+      <label class="text-[11px] muted-sm">Current Bowler</label>
+      <select id="bowler"></select>
+    </div>
+
+    <!-- THE BUTTON (kept in left panel) -->
+    <button id="goBtn" onclick="runOracle()" class="w-full card" style="text-align:center;background:#0f1724;color:#fff;font-weight:800;padding:14px;border-radius:6px">
+      ⚡ EXECUTE CAPTAIN'S PROTOCOL
+    </button>
+  </aside>
+</aside>
+
+  <!-- RIGHT: Results / Hero -->
+  <main class="main-area">
+
+    <div class="metrics">
+      <div class="metric"><div class="label">Current State</div><div class="value num" id="mScore">159/3</div></div>
+      <div class="metric"><div class="label">Overs</div><div class="value num" id="mOvers">15.2</div></div>
+      <div class="metric"><div class="label">Target</div><div class="value num" id="mRR">184</div></div>
+      <div class="metric"><div class="label">Win Prob</div><div class="value num" id="mStatus">62%</div></div>
+    </div>
+
+    <div style="display:flex;gap:28px;align-items:stretch">
+      <div class="hero-card card" style="flex:2;background:var(--accent-yellow)">
+        <small>CAPTAIN'S CALL</small>
+        <div style="font-size:44px;font-weight:900;letter-spacing:1px">BRING ON<br><span style="display:inline-block;background:#111;color:#fff;padding:6px 10px;margin-left:6px">THE LEGGIE</span></div>
+        <p class="hero-sub">The striker's efficiency drops by 32% against leg-spin in this phase. Deploying Rashid Khan now maximizes wicket probability.</p>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:18px">
+        <div class="card" style="padding:18px">
+          <div class="label">Match Quick</div>
+          <div style="font-size:22px;font-weight:800;margin-top:6px" id="radarScore">159/3</div>
+          <div style="color:var(--muted);margin-top:8px">Striker: <strong id="radarStriker">Virat Kohli</strong></div>
+          <div style="color:var(--muted);margin-top:6px">Bowler: <strong id="radarBowler">Azmatullah Omarzai</strong></div>
+        </div>
+
+        <div class="card" style="padding:18px">
+          <div style="font-weight:800">Captain's Mandate</div>
+          <div style="color:var(--muted);margin-top:8px">Hit the execute button or use the panels on the left to refine state.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-actions">
+      <button class="action-btn" onclick="updateMatch()">UPDATE MATCH</button>
+      <button class="action-btn yellow" onclick="runOracle()">AI RECOMMENDATION</button>
+      <button class="action-btn blue" onclick="initiateDebate()">INITIATE DEBATE</button>
+      <button class="action-btn red" onclick="deployStrategy()">DEPLOY STRATEGY</button>
+      <button class="action-btn black" onclick="impactPlayer()">IMPACT PLAYER</button>
+    </div>
+
+    <div id="loadingOverlay" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center">
+      <div class="loader mb-4"></div>
+      <p class="font-semibold" style="color:#fff">Deploying Oracle Agents...</p>
+      <p class="muted-sm" style="color:#fff;opacity:.9">Analyst → Architect → Captain</p>
+    </div>
+
+    <div id="errorToast" class="hidden" style="position:fixed;bottom:24px;right:24px;max-width:360px">
+      <div class="card" style="background:linear-gradient(90deg,#fff8f6,#fff);border:1px solid rgba(0,0,0,.04)">
+        <p style="font-weight:800;color:#111">⚠ Error</p>
+        <p class="muted-sm" id="errorMsg"></p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let radarData = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadTeams();
+  await fetchRadar();
+  startLiveSocket();
+  setupTabs();
+});
+
+// Cricbuzz toggle wiring
+async function setCricbuzzEnabled(enabled) {
+  try {
+    await fetch('/api/cricbuzz/enable', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enabled})});
+  } catch(e){ console.warn('Toggle failed', e); }
+}
+
+async function loadCricbuzzStatus() {
+  try {
+    const res = await fetch('/api/cricbuzz/status');
+    const d = await res.json();
+    const el = document.getElementById('cricbuzzToggle');
+    if (d.use_cricbuzz) el.checked = true; else el.checked = false;
+  } catch(e){ console.warn(e); }
+}
+
+document.addEventListener('DOMContentLoaded', loadCricbuzzStatus);
+document.getElementById && document.getElementById('cricbuzzToggle') && document.getElementById('cricbuzzToggle').addEventListener('change', (e)=> setCricbuzzEnabled(e.target.checked));
+
+// ── Teams & Players ──
+async function loadTeams() {
+  try {
+    const res = await fetch('/api/teams');
+    const d = await res.json();
+    const bat = document.getElementById('battingTeam');
+    const bowl = document.getElementById('bowlingTeam');
+    bat.innerHTML = ''; bowl.innerHTML = '';
+    d.teams.forEach((t, i) => { bat.add(new Option(t, t)); bowl.add(new Option(t, t)); });
+    if (d.teams.length > 1) bowl.selectedIndex = 1;
+    await loadBatters(); await loadBowlers();
+    bat.addEventListener('change', loadBatters);
+    bowl.addEventListener('change', loadBowlers);
+  } catch(e) { console.error(e); }
+}
+
+async function loadBatters() {
+  const team = document.getElementById('battingTeam').value;
+  const res = await fetch('/api/players/' + encodeURIComponent(team));
+  const d = await res.json();
+  const s = document.getElementById('striker');
+  const ns = document.getElementById('nonStriker');
+  s.innerHTML = ''; ns.innerHTML = '';
+  d.players.forEach(p => { s.add(new Option(p, p)); ns.add(new Option(p, p)); });
+  if (d.players.length > 1) ns.selectedIndex = 1;
+}
+
+async function loadBowlers() {
+  const team = document.getElementById('bowlingTeam').value;
+  const res = await fetch('/api/players/' + encodeURIComponent(team));
+  const d = await res.json();
+  const b = document.getElementById('bowler');
+  b.innerHTML = '';
+  d.players.forEach(p => b.add(new Option(p, p)));
+}
+
+// ── Live Radar ──
+async function fetchRadar() {
+  try {
+    const res = await fetch('/api/live-radar');
+    radarData = await res.json();
+    document.getElementById('radarMatch').textContent = radarData.match;
+    document.getElementById('radarScore').textContent = radarData.score;
+    document.getElementById('radarOvers').textContent = '(' + radarData.overs + ' ov)';
+    document.getElementById('radarStriker').textContent = radarData.striker;
+    document.getElementById('radarBowler').textContent = radarData.bowler;
+    document.getElementById('radarVenue').textContent = radarData.venue;
+    updateMetrics(radarData.score, radarData.overs, radarData.current_run_rate, radarData.target);
+  } catch(e) { console.error(e); }
+}
+
+// ── WebSocket live-updates ──
+function startLiveSocket() {
+  const loc = window.location;
+  const wsProto = loc.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${wsProto}://${loc.host}/ws/live-radar`;
+  let socket = new WebSocket(wsUrl);
+  socket.addEventListener('open', () => console.log('Live radar socket open'));
+  socket.addEventListener('message', (ev) => {
+    try {
+      radarData = JSON.parse(ev.data);
+      document.getElementById('radarMatch').textContent = radarData.match;
+      document.getElementById('radarScore').textContent = radarData.score;
+      document.getElementById('radarOvers').textContent = '(' + radarData.overs + ' ov)';
+      document.getElementById('radarStriker').textContent = radarData.striker;
+      document.getElementById('radarBowler').textContent = radarData.bowler;
+      document.getElementById('radarVenue').textContent = radarData.venue;
+      updateMetrics(radarData.score, radarData.overs, radarData.current_run_rate, radarData.target);
+    } catch(e) { console.error('WS parse', e); }
+  });
+  socket.addEventListener('close', (e) => {
+    console.log('Live radar socket closed, reconnecting in 2s', e);
+    setTimeout(startLiveSocket, 2000);
+  });
+  socket.addEventListener('error', (e) => { console.warn('WS error', e); socket.close(); });
+}
+
+function loadFromRadar() {
+  if (!radarData) return;
+  // Set team dropdowns
+  const bat = document.getElementById('battingTeam');
+  const bowl = document.getElementById('bowlingTeam');
+  for (let o of bat.options) { if (o.text.includes('RCB') || o.text.includes('Bengaluru')) { o.selected = true; break; } }
+  for (let o of bowl.options) { if (o.text.includes('PBKS') || o.text.includes('Punjab')) { o.selected = true; break; } }
+  loadBatters(); loadBowlers();
+  document.getElementById('score').value = radarData.score;
+  document.getElementById('overs').value = radarData.overs;
+  document.getElementById('target').value = radarData.target;
+  updateMetrics(radarData.score, radarData.overs, radarData.current_run_rate, radarData.target);
+}
+
+function updateMetrics(score, overs, rr, target) {
+  document.getElementById('mScore').textContent = score;
+  document.getElementById('mOvers').textContent = overs;
+  document.getElementById('mRR').textContent = rr || '—';
+  document.getElementById('mStatus').textContent = target && target.includes('1st') ? '1st Inn' : 'Chase';
+}
+
+// ── Tabs ──
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    });
+  });
+}
+
+// ── Run Oracle ──
+async function runOracle() {
+  const btn = document.getElementById('goBtn');
+  const overlay = document.getElementById('loadingOverlay');
+  btn.disabled = true;
+  btn.textContent = '⏳ Agents working...';
+  overlay.classList.remove('hidden');
+
+  const payload = {
+    batting_team: document.getElementById('battingTeam').value,
+    bowling_team: document.getElementById('bowlingTeam').value,
+    striker: document.getElementById('striker').value,
+    non_striker: document.getElementById('nonStriker').value,
+    bowler: document.getElementById('bowler').value,
+    score: document.getElementById('score').value,
+    overs: document.getElementById('overs').value,
+    target: document.getElementById('target').value,
+  };
+
+  try {
+    const res = await fetch('/api/strategize', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      showError(err.detail || 'Server error');
+      return;
+    }
+    const d = await res.json();
+
+    document.getElementById('tab-captain').innerHTML = '<div class="agent-out"><div class="card"><p class="text-sm font-bold" style="color:var(--neon);text-transform:uppercase;margin-bottom:8px">🏆 Captain\'s Final Mandate</p><div style="color:#cfe8ff;line-height:1.6">' + marked.parse(d.captain || '*No output*') + '</div></div></div>';
+    document.getElementById('tab-analyst').innerHTML = '<div class="agent-out"><div class="card" style="padding:14px">' + marked.parse(d.analyst || '*No output*') + '</div></div>';
+    document.getElementById('tab-momentum').innerHTML = '<div class="agent-out"><div class="card" style="padding:14px">' + marked.parse(d.architect || '*No output*') + '</div></div>';
+
+    // Show captain tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+    document.querySelector('[data-tab="captain"]').classList.add('active');
+    document.getElementById('tab-captain').classList.remove('hidden');
+  } catch(e) {
+    showError('Network error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ EXECUTE CAPTAIN\'S PROTOCOL: WHAT NEXT?';
+    overlay.classList.add('hidden');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('errorMsg').textContent = msg;
+  const t = document.getElementById('errorToast');
+  t.classList.remove('hidden');
+  setTimeout(() => t.classList.add('hidden'), 7000);
+}
+
+// Action button handlers
+async function updateMatch() {
+  try {
+    const payload = {
+      batting_team: document.getElementById('battingTeam').value,
+      bowling_team: document.getElementById('bowlingTeam').value,
+      striker: document.getElementById('striker').value,
+      non_striker: document.getElementById('nonStriker').value,
+      bowler: document.getElementById('bowler').value,
+      score: document.getElementById('score').value,
+      overs: document.getElementById('overs').value,
+      target: document.getElementById('target').value,
+    };
+    const res = await fetch('/api/update-state', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    const d = await res.json();
+    if (d.status === 'ok') {
+      // refresh metrics
+      fetchRadar();
+      showToast('Match updated');
+    }
+  } catch(e) { showError('Update failed: ' + e.message); }
+}
+
+async function initiateDebate() {
+  try {
+    const res = await fetch('/api/debate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+    const d = await res.json();
+    showToast(d.message || 'Debate started');
+  } catch(e) { showError('Debate failed: ' + e.message); }
+}
+
+async function deployStrategy() {
+  try {
+    const res = await fetch('/api/deploy', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+    const d = await res.json();
+    showToast(d.message || 'Strategy deployed');
+  } catch(e) { showError('Deploy failed: ' + e.message); }
+}
+
+async function impactPlayer() {
+  try {
+    const res = await fetch('/api/impact', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+    const d = await res.json();
+    showToast(d.message || 'Impact registered');
+    if (d.live_state) updateMetrics(d.live_state.score, d.live_state.overs, d.live_state.current_run_rate, d.live_state.target);
+  } catch(e) { showError('Impact failed: ' + e.message); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('errorToast');
+  document.getElementById('errorMsg').textContent = msg;
+  t.classList.remove('hidden');
+  setTimeout(() => t.classList.add('hidden'), 4000);
+}
+</script>
+</body>
+</html>

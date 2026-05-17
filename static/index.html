@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CRIC-ORACLE PRO | Enterprise IPL Analytics</title>
+<meta name="description" content="AI-powered IPL cricket strategy platform with multi-agent Gemini analysis">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{'neon-cyan':'#00d4ff','neon-green':'#00E676','dark-900':'#0a0e1a','dark-800':'#0f1629','dark-700':'#161d33','dark-600':'#1e2844'}}}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+body{font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0}
+.glass{background:rgba(15,22,41,0.7);backdrop-filter:blur(20px);border:1px solid rgba(0,212,255,0.1)}
+.glow-cyan{box-shadow:0 0 20px rgba(0,212,255,0.15)}
+.glow-green{box-shadow:0 0 20px rgba(0,230,118,0.15)}
+.text-glow-cyan{text-shadow:0 0 10px rgba(0,212,255,0.5)}
+.text-glow-green{text-shadow:0 0 10px rgba(0,230,118,0.5)}
+@keyframes pulse-neon{0%,100%{opacity:1;box-shadow:0 0 5px #00E676,0 0 10px #00E676}50%{opacity:.5;box-shadow:0 0 2px #00E676}}
+.pulse-live{animation:pulse-neon 2s infinite}
+@keyframes spin-glow{to{transform:rotate(360deg)}}
+.spinner{border:3px solid rgba(0,212,255,0.1);border-top-color:#00d4ff;border-radius:50%;width:40px;height:40px;animation:spin-glow .8s linear infinite}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#0a0e1a}::-webkit-scrollbar-thumb{background:#2a3454;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#00d4ff}
+.tab-btn{transition:all .2s}.tab-btn.active{color:#00d4ff;border-bottom:2px solid #00d4ff}
+.grid-bg{background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px}
+select,input,textarea{background:#0f1629!important;border:1px solid #2a3454!important;color:#e2e8f0!important;border-radius:8px;padding:8px 12px;width:100%;font-size:14px;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:#00d4ff!important}
+.metric-card{background:rgba(15,22,41,0.8);border:1px solid rgba(0,212,255,0.12);border-radius:12px;padding:16px;text-align:center;transition:transform .2s,box-shadow .2s}
+.metric-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.3)}
+.btn-analyze{background:linear-gradient(135deg,#FF4B2B,#FF416C);border:none;color:#fff;font-weight:700;padding:14px;border-radius:10px;width:100%;cursor:pointer;font-size:15px;letter-spacing:1px;text-transform:uppercase;transition:all .3s}
+.btn-analyze:hover{transform:scale(1.02);box-shadow:0 0 25px rgba(255,75,43,0.4)}
+.btn-analyze:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.agent-content h3{color:#00d4ff;font-size:1.15rem;font-weight:700;margin:16px 0 8px}
+.agent-content strong{color:#00E676}
+.agent-content ul{list-style:disc;padding-left:20px;margin:8px 0}
+.agent-content li{margin:4px 0;line-height:1.6}
+.agent-content p{margin:6px 0;line-height:1.7}
+.gradient-text{background:linear-gradient(90deg,#00d4ff,#7b61ff,#00E676);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+</style>
+</head>
+<body class="grid-bg min-h-screen">
+
+<!-- NAV BAR -->
+<nav class="glass sticky top-0 z-50 px-6 py-3 flex items-center justify-between" style="border-bottom:1px solid rgba(0,212,255,0.15)">
+  <div class="flex items-center gap-3">
+    <div class="text-2xl">🏏</div>
+    <div>
+      <h1 class="text-xl font-black tracking-tight gradient-text">CRIC-ORACLE PRO</h1>
+      <p class="text-xs text-slate-500 -mt-1">Enterprise IPL Analytics Platform</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 text-xs text-slate-400">
+      <span class="w-2 h-2 rounded-full bg-green-400 pulse-live inline-block"></span> SYSTEM ONLINE
+    </div>
+    <span class="text-xs font-mono px-3 py-1 rounded-full bg-slate-800 text-neon-cyan border border-cyan-900">v2.0</span>
+  </div>
+</nav>
+
+<!-- MAIN LAYOUT -->
+<div class="flex min-h-[calc(100vh-56px)]">
+
+  <!-- LEFT PANEL -->
+  <aside class="w-[380px] min-w-[380px] border-r border-slate-800/60 p-5 overflow-y-auto" style="max-height:calc(100vh - 56px)">
+    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">⚙ Match Configuration</h2>
+
+    <!-- TEAMS -->
+    <div class="glass rounded-xl p-4 mb-4 glow-cyan">
+      <label class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Batting Team</label>
+      <select id="battingTeam" class="mt-1 mb-3"></select>
+      <label class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Bowling Team</label>
+      <select id="bowlingTeam" class="mt-1"></select>
+    </div>
+
+    <!-- VENUE & INNINGS -->
+    <div class="glass rounded-xl p-4 mb-4">
+      <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Venue</label>
+      <select id="venue" class="mt-1 mb-3"></select>
+      <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Innings</label>
+      <select id="innings" class="mt-1">
+        <option value="2nd">2nd Innings (Chase)</option>
+        <option value="1st">1st Innings</option>
+      </select>
+    </div>
+
+    <!-- SCORE STATE -->
+    <div class="glass rounded-xl p-4 mb-4">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">📊 Score State</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-500">Runs</label><input type="number" id="runs" value="142" min="0"></div>
+        <div><label class="text-xs text-slate-500">Wickets</label><input type="number" id="wickets" value="4" min="0" max="10"></div>
+        <div><label class="text-xs text-slate-500">Over</label><input type="number" id="overWhole" value="17" min="0" max="19"></div>
+        <div><label class="text-xs text-slate-500">Ball</label><input type="number" id="overBall" value="3" min="0" max="5"></div>
+      </div>
+      <div class="mt-3" id="targetWrap">
+        <label class="text-xs text-slate-500">Target</label>
+        <input type="number" id="target" value="186" min="1">
+      </div>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <div><label class="text-xs text-slate-500">Last Over Runs</label><input type="number" id="lastOverRuns" value="14" min="0"></div>
+        <div><label class="text-xs text-slate-500">Last Over Wkts</label><input type="number" id="lastOverWkts" value="0" min="0" max="3"></div>
+      </div>
+    </div>
+
+    <!-- PLAYERS -->
+    <div class="glass rounded-xl p-4 mb-4 glow-green">
+      <h3 class="text-xs font-bold text-green-400 uppercase tracking-widest mb-3">👤 Active Players</h3>
+      <label class="text-xs text-slate-500">Striker</label>
+      <select id="striker" class="mt-1 mb-2"></select>
+      <label class="text-xs text-slate-500">Non-Striker</label>
+      <select id="nonStriker" class="mt-1 mb-2"></select>
+      <label class="text-xs text-slate-500">Current Bowler</label>
+      <select id="bowler" class="mt-1 mb-2"></select>
+      <label class="text-xs text-slate-500">Available Bowlers (comma-sep)</label>
+      <input type="text" id="availBowlers" value="Jasprit Bumrah, Rashid Khan" class="mt-1">
+    </div>
+
+    <!-- CONTEXT -->
+    <div class="glass rounded-xl p-4 mb-4">
+      <label class="text-xs text-slate-500">Field Restrictions</label>
+      <select id="fieldRestrictions" class="mt-1 mb-2">
+        <option>none</option><option>powerplay</option><option>death (5 out)</option><option>strategic timeout active</option>
+      </select>
+      <label class="text-xs text-slate-500">Live Notes</label>
+      <textarea id="notes" rows="2" class="mt-1" placeholder="Optional context..."></textarea>
+    </div>
+
+    <!-- ANALYZE BUTTON -->
+    <button id="analyzeBtn" class="btn-analyze" onclick="runAnalysis()">
+      🧠 DEPLOY ORACLE AGENTS
+    </button>
+  </aside>
+
+  <!-- RIGHT PANEL -->
+  <main class="flex-1 p-6 overflow-y-auto" style="max-height:calc(100vh - 56px)">
+
+    <!-- METRICS ROW -->
+    <div class="grid grid-cols-5 gap-4 mb-6" id="metricsRow">
+      <div class="metric-card"><p class="text-xs text-slate-500 uppercase tracking-wide">Score</p><p class="text-3xl font-black text-neon-green text-glow-green font-mono mt-1" id="mScore">142/4</p></div>
+      <div class="metric-card"><p class="text-xs text-slate-500 uppercase tracking-wide">Overs</p><p class="text-3xl font-black text-neon-cyan text-glow-cyan font-mono mt-1" id="mOvers">17.3</p></div>
+      <div class="metric-card"><p class="text-xs text-slate-500 uppercase tracking-wide">Current RR</p><p class="text-3xl font-black text-yellow-400 font-mono mt-1" id="mCRR">—</p></div>
+      <div class="metric-card"><p class="text-xs text-slate-500 uppercase tracking-wide">Required RR</p><p class="text-3xl font-black text-red-400 font-mono mt-1" id="mRRR">—</p></div>
+      <div class="metric-card"><p class="text-xs text-slate-500 uppercase tracking-wide">Pressure Idx</p><p class="text-3xl font-black text-orange-400 font-mono mt-1" id="mPressure">—</p></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex gap-1 border-b border-slate-800 mb-0" id="tabBar">
+      <button class="tab-btn active px-5 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent" data-tab="snapshot">📋 Snapshot</button>
+      <button class="tab-btn px-5 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent" data-tab="analyst">📊 Data Analyst</button>
+      <button class="tab-btn px-5 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent" data-tab="momentum">🔥 Momentum Architect</button>
+      <button class="tab-btn px-5 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent" data-tab="captain">🏆 Captain's Mandate</button>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="glass rounded-b-xl rounded-tr-xl p-6 min-h-[400px]" id="tabContent">
+      <div id="tab-snapshot" class="tab-pane">
+        <div class="flex flex-col items-center justify-center h-64 text-slate-600">
+          <p class="text-6xl mb-4">🏏</p>
+          <p class="text-lg font-semibold">Configure match state & deploy agents</p>
+          <p class="text-sm mt-1">The Oracle will analyze in ~20 seconds</p>
+        </div>
+      </div>
+      <div id="tab-analyst" class="tab-pane hidden"></div>
+      <div id="tab-momentum" class="tab-pane hidden"></div>
+      <div id="tab-captain" class="tab-pane hidden"></div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center">
+      <div class="spinner mb-4"></div>
+      <p class="text-neon-cyan font-semibold text-lg text-glow-cyan" id="loadingText">Deploying Oracle Agents...</p>
+      <p class="text-slate-500 text-sm mt-1">Analyst → Architect → Strategist pipeline</p>
+    </div>
+
+    <!-- ERROR TOAST -->
+    <div id="errorToast" class="hidden fixed bottom-6 right-6 z-50 bg-red-900/90 border border-red-500/40 text-red-200 px-6 py-4 rounded-xl shadow-lg max-w-md">
+      <p class="font-bold text-sm">⚠ Analysis Error</p>
+      <p class="text-xs mt-1" id="errorMsg"></p>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── State ──
+let teamsData = {};
+let venuesData = [];
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadTeams();
+  await loadVenues();
+  setupTabs();
+  setupInningsToggle();
+  updateMetricsDisplay();
+  // Listen for score changes
+  ['runs','wickets','overWhole','overBall','target'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateMetricsDisplay);
+  });
+});
+
+async function loadTeams() {
+  try {
+    const res = await fetch('/api/teams');
+    const data = await res.json();
+    const batSel = document.getElementById('battingTeam');
+    const bowlSel = document.getElementById('bowlingTeam');
+    batSel.innerHTML = '';
+    bowlSel.innerHTML = '';
+    data.teams.forEach((t, i) => {
+      batSel.add(new Option(t, t));
+      bowlSel.add(new Option(t, t));
+    });
+    if (data.teams.length > 1) bowlSel.selectedIndex = 1;
+    await loadPlayersForBat();
+    await loadPlayersForBowl();
+    batSel.addEventListener('change', loadPlayersForBat);
+    bowlSel.addEventListener('change', loadPlayersForBowl);
+  } catch(e) { console.error('Failed to load teams', e); }
+}
+
+async function loadPlayersForBat() {
+  const team = document.getElementById('battingTeam').value;
+  const res = await fetch('/api/players/' + encodeURIComponent(team));
+  const data = await res.json();
+  const striker = document.getElementById('striker');
+  const nonStriker = document.getElementById('nonStriker');
+  striker.innerHTML = '';
+  nonStriker.innerHTML = '';
+  data.players.forEach((p, i) => {
+    striker.add(new Option(p, p));
+    nonStriker.add(new Option(p, p));
+  });
+  if (data.players.length > 1) nonStriker.selectedIndex = 1;
+}
+
+async function loadPlayersForBowl() {
+  const team = document.getElementById('bowlingTeam').value;
+  const res = await fetch('/api/players/' + encodeURIComponent(team));
+  const data = await res.json();
+  const bowler = document.getElementById('bowler');
+  bowler.innerHTML = '';
+  data.players.forEach(p => bowler.add(new Option(p, p)));
+  // Set available bowlers
+  const bowlers = data.players.filter(p => {
+    const l = p.toLowerCase();
+    return l.includes('bumrah') || l.includes('boult') || l.includes('chahar') || l.includes('khan') || l.includes('archer') || l.includes('kumar') || l.includes('pandya') || l.includes('patel') || l.includes('johnson') || l.includes('hazlewood') || l.includes('cummins') || l.includes('shami') || l.includes('natarajan') || l.includes('rabada') || l.includes('siraj') || l.includes('arshdeep') || l.includes('ferguson') || l.includes('jansen') || l.includes('chakaravarthy') || l.includes('bishnoi') || l.includes('chahal') || l.includes('pathirana') || l.includes('sundar') || l.includes('hasaranga') || l.includes('yadav') || l.includes('noor') || l.includes('overton') || l.includes('shepherd') || l.includes('carse') || l.includes('malik') || l.includes('unadkat');
+  });
+  document.getElementById('availBowlers').value = bowlers.slice(0, 4).join(', ');
+}
+
+async function loadVenues() {
+  const res = await fetch('/api/venues');
+  const data = await res.json();
+  venuesData = data.venues;
+  const sel = document.getElementById('venue');
+  sel.innerHTML = '';
+  data.venues.forEach(v => sel.add(new Option(v.name, v.key)));
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    });
+  });
+}
+
+function setupInningsToggle() {
+  const sel = document.getElementById('innings');
+  const wrap = document.getElementById('targetWrap');
+  sel.addEventListener('change', () => {
+    wrap.style.display = sel.value === '1st' ? 'none' : 'block';
+  });
+}
+
+function updateMetricsDisplay() {
+  const r = parseInt(document.getElementById('runs').value) || 0;
+  const w = parseInt(document.getElementById('wickets').value) || 0;
+  const oW = parseInt(document.getElementById('overWhole').value) || 0;
+  const oB = parseInt(document.getElementById('overBall').value) || 0;
+  const over = oW + oB / 10;
+  const t = parseInt(document.getElementById('target').value) || 0;
+  const inn = document.getElementById('innings').value;
+
+  document.getElementById('mScore').textContent = r + '/' + w;
+  document.getElementById('mOvers').textContent = over.toFixed(1);
+
+  const crr = over > 0 ? (r / over).toFixed(2) : '—';
+  document.getElementById('mCRR').textContent = crr;
+
+  if (inn === '2nd' && t > 0) {
+    const ballsBowled = oW * 6 + oB;
+    const ballsRem = Math.max(120 - ballsBowled, 0);
+    const oversRem = ballsRem / 6;
+    const needed = Math.max(t - r, 0);
+    const rrr = oversRem > 0 ? (needed / oversRem).toFixed(2) : '—';
+    const pressure = Math.min(100, (parseFloat(rrr) * 8 + w * 4)).toFixed(0);
+    document.getElementById('mRRR').textContent = rrr;
+    document.getElementById('mPressure').textContent = pressure;
+  } else {
+    document.getElementById('mRRR').textContent = '—';
+    const proj = over > 0 ? Math.round(r / over * 20) : 0;
+    const pressure = (w * 6 + Math.max(0, 160 - proj) * 0.2).toFixed(0);
+    document.getElementById('mPressure').textContent = pressure;
+  }
+}
+
+function getPayload() {
+  const oW = parseInt(document.getElementById('overWhole').value) || 0;
+  const oB = parseInt(document.getElementById('overBall').value) || 0;
+  const ab = document.getElementById('availBowlers').value;
+  return {
+    innings: document.getElementById('innings').value,
+    batting_team: document.getElementById('battingTeam').value,
+    bowling_team: document.getElementById('bowlingTeam').value,
+    venue: document.getElementById('venue').value,
+    over: oW + oB / 10,
+    balls_in_over: oB,
+    runs: parseInt(document.getElementById('runs').value) || 0,
+    wickets: parseInt(document.getElementById('wickets').value) || 0,
+    target: document.getElementById('innings').value === '2nd' ? (parseInt(document.getElementById('target').value) || null) : null,
+    striker: document.getElementById('striker').value,
+    non_striker: document.getElementById('nonStriker').value,
+    bowler: document.getElementById('bowler').value,
+    available_bowlers: ab.split(',').map(s => s.trim()).filter(Boolean),
+    last_over_runs: parseInt(document.getElementById('lastOverRuns').value) || 0,
+    last_over_wickets: parseInt(document.getElementById('lastOverWkts').value) || 0,
+    field_restrictions: document.getElementById('fieldRestrictions').value,
+    notes: document.getElementById('notes').value,
+  };
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analyzeBtn');
+  const overlay = document.getElementById('loadingOverlay');
+  btn.disabled = true;
+  btn.textContent = '⏳ AGENTS RUNNING...';
+  overlay.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(getPayload()),
+    });
+    const result = await res.json();
+
+    if (!result.success) {
+      showError(result.error || 'Unknown error');
+      return;
+    }
+
+    const d = result.data;
+    document.getElementById('tab-snapshot').innerHTML = '<pre class="text-sm font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">' + escapeHtml(d.match_snapshot) + '</pre>';
+    document.getElementById('tab-analyst').innerHTML = '<div class="agent-content">' + marked.parse(d.analyst_audit || '*No output*') + '</div>';
+    document.getElementById('tab-momentum').innerHTML = '<div class="agent-content">' + marked.parse(d.pressure_audit || '*No output*') + '</div>';
+    document.getElementById('tab-captain').innerHTML = '<div class="agent-content">' + marked.parse(d.strategist_mandate || '*No output*') + '</div>';
+
+    if (d.errors && d.errors.length > 0) {
+      showError('Partial errors: ' + d.errors.join('; '));
+    }
+
+    // Auto-switch to captain tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+    document.querySelector('[data-tab="captain"]').classList.add('active');
+    document.getElementById('tab-captain').classList.remove('hidden');
+
+  } catch(e) {
+    showError('Network error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🧠 DEPLOY ORACLE AGENTS';
+    overlay.classList.add('hidden');
+  }
+}
+
+function showError(msg) {
+  const toast = document.getElementById('errorToast');
+  document.getElementById('errorMsg').textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 8000);
+}
+
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
